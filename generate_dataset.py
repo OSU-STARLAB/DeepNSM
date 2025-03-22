@@ -22,11 +22,14 @@ import concurrent.futures
 
 load_dotenv()
 
+# load the OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_PERSONAL_API_KEY"))
 
+# load the NSM prompts from the json file
 with open("nsm_prompt.json", "r", encoding="utf-8") as file:
     messages=json.load(file)
 
+# define the NSM primes to be excluded from the dataset
 NSM_PRIMES = {
     "I", "you", "someone", "people", "something", "thing", "body", "kind", "part",
     "this", "the same", "other", "else", "another", "one", "two", "some", "all",
@@ -39,6 +42,7 @@ NSM_PRIMES = {
     "not", "maybe", "can", "because", "if", "very", "more", "like", "as", "way"
 }
 
+# get the senses of a word from WordNet
 def get_senses(word, exampler='gpt-4o-mini', max_senses=2):
     senses = []
     
@@ -49,7 +53,7 @@ def get_senses(word, exampler='gpt-4o-mini', max_senses=2):
     if len(synsets) >= max_senses:
         synsets = random.sample(synsets, max_senses)
     
-    # For each synset, get examples and return them
+    # For each set of senses (synset), get examples and return them
     for syn in synsets:
         examples = []
         
@@ -62,18 +66,22 @@ def get_senses(word, exampler='gpt-4o-mini', max_senses=2):
                     "source": "WordNet"
                 })
         
-        # If there are fewer examples than needed, generate more using GPT-4o-mini
+        # If WordNet doesn't provide enough examples, generate more using OpenAI API
         if len(examples) < count:
-            remaining = count - len(examples)
+            remaining = count - len(examples) # how many more examples are needed
             example_prompt = [{
                 "role": "user",
                 "content": f"Word: '{word}'\nSense: {syn.definition()}\nPlease generate {remaining} example sentences using the word in this sentence. Only output the sentences, starting a new line for each example."
             }]
+
+            # generate more examples via OpenAI API query
             response = client.chat.completions.create(
                 model=exampler,
                 messages=example_prompt,
                 stream=False
             )
+
+            # add the generated examples to the list of examples
             generated_examples = response.choices[0].message.content.strip().split('\n')
             for generated_example in generated_examples:
                 examples.append({
@@ -89,6 +97,7 @@ def get_senses(word, exampler='gpt-4o-mini', max_senses=2):
     
     return senses
 
+# generates dataset of words with their senses and explications
 def generate_dataset(word_list, explications_per_word=2, explicator='gpt-4o', exampler='gpt-4o-mini'):
     dataset = {"data": [], "model": explicator}
     
@@ -155,10 +164,12 @@ def generate_dataset(word_list, explications_per_word=2, explicator='gpt-4o', ex
     return filename
 
 
-
-words = brown.words()
+# loads the Brown corpus, filters out stop words, non-alphabetic words, NSM primes, and tags
+words = brown.words() 
 stop_words = set(stopwords.words('english'))
 non_alpha_pattern = re.compile('^[^a-zA-Z]+$')
+
+# selects most common words using filtering
 word_counts = Counter(words)
 common_words_original = [word for word, count in word_counts.most_common(20000)
                          if word.lower() not in stop_words
@@ -166,7 +177,7 @@ common_words_original = [word for word, count in word_counts.most_common(20000)
                          and word.lower() not in NSM_PRIMES
                          and len(word) > 1]
 
-tagged_words = pos_tag(common_words_original)
+tagged_words = pos_tag(common_words_original) # tag the words with their part of speech
 filtered_common_words = [word.lower() for word, tag in tagged_words if tag not in ['NNP', 'NNPS']]
 filtered_common_words = filtered_common_words[400:]
 print(filtered_common_words[:100])
