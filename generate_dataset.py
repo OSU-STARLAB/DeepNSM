@@ -6,12 +6,14 @@ from dotenv import load_dotenv
 import nltk
 nltk.data.path.append('/nfs/hpc/share/baartmar/NSM/nltk_data')
 nltk.data.path.append('C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
-#nltk.download('wordnet', download_dir='/nfs/hpc/share/baartmar/NSM/nltk_data')
-#nltk.download('brown', download_dir='/nfs/hpc/share/baartmar/NSM/nltk_data')
-#nltk.download('stopwords', download_dir='/nfs/hpc/share/baartmar/NSM/nltk_data')
-#nltk.download('punkt_tab', download_dir='/nfs/hpc/share/baartmar/NSM/nltk_data')
-#nltk.download('reuters')
-# nltk.download('averaged_perceptron_tagger_eng', download_dir='/nfs/hpc/share/baartmar/NSM/nltk_data')
+
+# nltk.download('wordnet', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
+# nltk.download('brown', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
+# nltk.download('stopwords', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
+# nltk.download('punkt_tab', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
+# nltk.download('reuters', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
+# nltk.download('averaged_perceptron_tagger_eng', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
+
 from nltk.corpus import wordnet, brown, stopwords
 from nltk import pos_tag
 import random
@@ -106,6 +108,9 @@ def generate_dataset(word_list, explications_per_word=2, explicator='gpt-4o', ex
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filename = f"data/data_{timestamp}.json"
     
+    # Create the data directory if it doesn't exist
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    
     try:
         # Iterate over all words with a progress bar
         for word in tqdm(word_list, desc="Processing words", unit="word"):
@@ -154,6 +159,9 @@ def generate_dataset(word_list, explications_per_word=2, explicator='gpt-4o', ex
             f.flush()  # Ensure data is written to disk immediately
 
     except Exception as e:
+        # Create the data directory if it doesn't exist (also needed here)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        
         # Handle errors by saving the current state of the dataset
         print(f"Error occurred: {e}. Saving the current dataset...")
         with open(filename, "w") as f:
