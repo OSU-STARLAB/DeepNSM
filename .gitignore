@@ -10,3 +10,6 @@ venv/
 # Generated datasets
 data/
 nltk_data/
+
+# testing
+nltk_testing/

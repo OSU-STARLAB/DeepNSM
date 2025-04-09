@@ -46,7 +46,7 @@ NSM_PRIMES = {
 }
 
 # get the senses of a word from WordNet
-def get_senses(word, exampler='gpt-4o-mini', max_senses=2):
+def get_senses(word, exampler='gpt-4o-mini', max_senses=5):
     senses = []
     
     # Fetch senses from WordNet
