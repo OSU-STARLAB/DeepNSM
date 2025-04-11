@@ -25,6 +25,12 @@ class LegalExplication:
         """
         return word.lower() in self.NSM_PRIMES
     
+    def is_non_prime_stop_grammar(self, word: str) -> bool:
+        """
+        Check if a word is a non-prime stop word or grammatical element.
+        """
+        return word.lower() in self.STOP_WORDS
+
     def check_legal_explication(self, original_word: str, explication: str, len_threshold: (int, int), non_prime_threshold: (int, int)):
         """
         Check if an explication meets validity criteria.
@@ -54,5 +60,11 @@ class LegalExplication:
 
         # Count primes and non-primes
         num_primes = sum(1 for token in tokens if self.is_prime(token))
-        num_non_prime_stop_grammar = sum(1 for token in tokens if is_non_prime_stop_grammar(token))
+        num_non_prime_stop_grammar = sum(1 for token in tokens if self.is_non_prime_stop_grammar(token))
         num_non_prime_molecule = sum(1 for token in tokens if is_non_prime_molecule(token))
+    
+    def annotate_explication(self, explication: str) -> str:
+        """
+        Prints an explication as an annotated string, where all the molecules are marked as [m]:
+        """
+        pass
