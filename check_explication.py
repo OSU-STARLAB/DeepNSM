@@ -2,8 +2,9 @@ import nltk
 import os
 from nltk.corpus import stopwords
 import string
+import re
 class LegalExplication:
-    def __init__(self, original_word: str, explication: str, len_threshold: (int, int), non_prime_threshold: (int, int)):
+    def __init__(self, original_word: str, explication: str, len_threshold: tuple[int, int], non_prime_threshold: tuple[int, int]):
         self.original_word = original_word
         self.explication = explication
         self.len_threshold = len_threshold
@@ -75,20 +76,26 @@ class LegalExplication:
 
         # convert the explication to lowercase for uniformity
         explication = explication.lower()
-
-        # Initialize flags
-        uses_illegal_punctuation = False
-
         # Tokenize the explication
-        tokens = explication.split()
+        tokens = [token for token in re.findall(r'\w+|[^\w\s]', explication)]
         length = len(tokens)
 
         # Count primes and non-primes
-        num_primes = sum(1 for token in tokens if self.is_prime(token))
-        num_non_prime_stopwords = sum(1 for token in tokens if self.is_non_prime_stop_grammar(token))
-        num_non_prime_molecules = sum(1 for token in tokens if self.is_non_prime_molecule(token))
+        num_primes = num_non_prime_stopwords = num_non_prime_molecules = 0
+        for token in tokens:
+            if self.is_prime(token):
+                num_primes += 1
+            elif self.is_non_prime_stop_grammar(token):
+                num_non_prime_stopwords += 1
+            elif self.is_non_prime_molecule(token):
+                num_non_prime_molecules += 1
+
+        
         contains_original_word = original_word.lower() in explication
-        # num_unique_molecules = len(set(tokens)) #TODO change this if it's for molecules only
+
+        unique_molecules = {token for token in tokens if self.is_non_prime_molecule(token)}
+        num_unique_molecules = len(unique_molecules)
+
         uses_illegal_punctuation = any(char in explication for char in string.punctuation if char not in {'.', '!', '?', ',', ';', ':', '(', ')', '[', ']', '{', '}', '-'})
         mol_to_word_ratio = num_non_prime_molecules / length if length > 0 else 0
     
