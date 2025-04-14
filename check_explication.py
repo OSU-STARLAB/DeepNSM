@@ -3,7 +3,7 @@ import os
 from nltk.corpus import stopwords
 import string
 import re
-class LegalExplication:
+class ExplicationValidator:
     def __init__(self, original_word: str, explication: str, len_threshold: tuple[int, int], non_prime_threshold: tuple[int, int]):
         self.original_word = original_word
         self.explication = explication
