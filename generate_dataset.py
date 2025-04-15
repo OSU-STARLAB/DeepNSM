@@ -5,7 +5,6 @@ from datetime import datetime
 from dotenv import load_dotenv
 import nltk
 nltk.data.path.append('/nfs/hpc/share/baartmar/NSM/nltk_data')
-nltk.data.path.append('C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
 
 # nltk.download('wordnet', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
 # nltk.download('brown', download_dir='C:\\Users\\rahul\\OneDrive\\Documents\\GitHub\\nsm-private\\nltk_data')
