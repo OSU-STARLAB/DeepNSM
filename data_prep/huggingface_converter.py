@@ -4,7 +4,6 @@ from huggingface_hub import login
 access_token = ""
 login(access_token)
 
-# ==== Step 1: Prepare your data ====
 data = [
     {
         "word": "happy",
