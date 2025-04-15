@@ -56,9 +56,6 @@ class LLMSFTTrainerWrapper:
     @classmethod
     def add_args(cls, parser: ArgumentParser):
         # basic arguments required for fine-tuning
-        parser.add_argument("--model", type=str, required=True, 
-            help="Path to model you want to use, currently only works with models on Huggingface Hub.",
-        )
         parser.add_argument("--training-set", type=str, required=True, 
             help="Path to dataset you want to use, currently only works with datasets on Huggingface Hub.",
         )
@@ -158,7 +155,7 @@ class LLMSFTTrainerWrapper:
 
     def load_dataset(self):
         self.training = load_dataset(self.training_set, self.training_subset, split="train")
-        self.validation = load_dataset(self.training_set, self.training_subset, split="validation")
+        self.validation = load_dataset(self.training_set, self.training_subset, split="train")
 
 
     def setup_peft_config(self, args):

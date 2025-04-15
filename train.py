@@ -2,13 +2,13 @@ import argparse
 import sys
 
 def main():
-    model, unknown = model_parser().parse_known_args(sys.argv[1:])
-    parser = argparse.ArgumentParser()
+    parser = model_parser()
+    model, _ = parser.parse_known_args(sys.argv)
 
-    if 'llama3' in model.model_type.lower():
+    if 'llama' in model.model.lower():
         from train_wrappers.llama3_train_wrapper import LlamaSFTTrainerWrapper
-        LlamaSFTTrainerWrapper.add_arguments(parser)
-        trainer = LlamaSFTTrainerWrapper(parser.parse_args(unknown))
+        LlamaSFTTrainerWrapper.add_args(parser)
+        trainer = LlamaSFTTrainerWrapper(parser.parse_args())
     else:
         raise NotImplementedError
 
@@ -20,7 +20,7 @@ def main():
 def model_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model_type",
+        "--model",
         type=str,
         default=None,
         required=True,

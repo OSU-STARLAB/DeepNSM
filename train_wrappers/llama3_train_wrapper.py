@@ -67,18 +67,17 @@ class LlamaSFTTrainerWrapper(LLMSFTTrainerWrapper):
     def setup_trainer(self, args):
         self.load_dataset()
 
-        response_template = "<|start_header_id|>assistant<|end_header_id|>\n"
+        response_template = "<|start_header_id|>assistant<|end_header_id|>\n\n"
         collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=self.tokenizer)
         
-        formatting = partial(formatting_func, source_lang=self.source_lang, target_lang=self.target_lang) 
+        formatting = partial(formatting_func) 
 
         self.trainer = SFTTrainer(
             model=self.model,
             train_dataset=self.training,
             eval_dataset=self.validation,
             peft_config=self.peft_config if self.peft else None,
-            max_seq_length=args.max_seq_length,
-            tokenizer=self.tokenizer,
+            processing_class=self.tokenizer,
             data_collator=collator,
             formatting_func=formatting,
             args=self.training_arguments,
@@ -99,7 +98,19 @@ collator to handle our data better. Example sentence at start of wait-3 translat
 
 '''
 
-def formatting_func(example, source_lang, target_lang):
-    raise NotImplementedError 
+def formatting_func(example):
+    output_texts = []  
+
+    if not isinstance(example['word'], list) or not isinstance(example['examples'][0], list) or not isinstance(example['ns_metalanguage'], list):
+        example['word'] = [example['word']]
+        example['examples'] = [example['examples']]
+        example['ns_metalanguage'] = [example['ns_metalanguage']]
+    
+    for word, examples, explication in zip(example['word'], example['examples'], example['ns_metalanguage']):
+        examples = " ".join(examples)
+        text = f"<|start_header_id|>user<|end_header_id|>\n\nHere is a word:{word}. Here are examples of using the word:{examples}. Now provide an explication of the word.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{explication}"
+        output_texts.append(text)
+
+    return output_texts 
 
 
