@@ -9,8 +9,12 @@ class ExplicationValidator:
         self.explication = explication
         self.len_threshold = len_threshold
         self.non_prime_threshold = non_prime_threshold
-
-    NSM_STOPWORDS = set();
+        
+        # Check if stopwords data exists in AppData/Roaming
+        appdata_path = os.path.join(os.getenv('APPDATA'), 'nltk_data', 'corpora', 'stopwords')
+        if not os.path.exists(appdata_path):
+            nltk.download('stopwords')
+        self.NSM_STOPWORDS = set(stopwords.words('english'))
 
     # class variable: NSM semantic primes
     NSM_PRIMES = {
@@ -25,33 +29,23 @@ class ExplicationValidator:
         "not", "maybe", "can", "because", "if", "very", "more", "like", "as", "way"
     }
 
-    def load_stopwords(self):
-        """
-        Load the stopwords from the NLTK stopwords corpus.
-        """
-        # Check if stopwords data exists in AppData/Roaming
-        appdata_path = os.path.join(os.getenv('APPDATA'), 'nltk_data', 'corpora', 'stopwords')
-        if not os.path.exists(appdata_path):
-            nltk.download('stopwords')
-        self.NSM_STOPWORDS = set(stopwords.words('english'))
-
-    def is_prime(self, word: str) -> bool:
+    def __is_prime(self, word: str) -> bool:
         """
         Check if a word is a prime word.
         """
         return word.lower() in self.NSM_PRIMES
     
-    def is_non_prime_stop_grammar(self, word: str) -> bool:
+    def __is_non_prime_stop_grammar(self, word: str) -> bool:
         """
         Check if a word is a non-prime stop word or grammatical element.
         """
         return word.lower() in self.NSM_STOPWORDS
     
-    def is_non_prime_molecule(self, word: str) -> bool:
+    def __is_non_prime_molecule(self, word: str) -> bool:
         """
         Check if a word is a non-prime molecule.
         """
-        return not self.is_prime(word) and not self.is_non_prime_stop_grammar(word)
+        return not self.__is_prime(word) and not self.__is_non_prime_stop_grammar(word)
 
     def check_legal_explication(self, original_word: str, explication: str, len_threshold: tuple[int, int], non_prime_threshold: tuple[int, int]):
         """
@@ -83,17 +77,17 @@ class ExplicationValidator:
         # Count primes and non-primes
         num_primes = num_non_prime_stopwords = num_non_prime_molecules = 0
         for token in tokens:
-            if self.is_prime(token):
+            if self.__is_prime(token):
                 num_primes += 1
-            elif self.is_non_prime_stop_grammar(token):
+            elif self.__is_non_prime_stop_grammar(token):
                 num_non_prime_stopwords += 1
-            elif self.is_non_prime_molecule(token):
+            elif self.__is_non_prime_molecule(token):
                 num_non_prime_molecules += 1
 
         
         contains_original_word = original_word.lower() in explication
 
-        unique_molecules = {token for token in tokens if self.is_non_prime_molecule(token)}
+        unique_molecules = {token for token in tokens if self.__is_non_prime_molecule(token)}
         num_unique_molecules = len(unique_molecules)
 
         uses_illegal_punctuation = any(char in explication for char in string.punctuation if char not in {'.', '!', '?', ',', ';', ':', '(', ')', '[', ']', '{', '}', '-'})
@@ -108,7 +102,7 @@ class ExplicationValidator:
         tokens = explication.split()
         annotated_tokens = []
         for token in tokens:
-            if self.is_non_prime_molecule(token):
+            if self.__is_non_prime_molecule(token):
                 annotated_tokens.append(f'{token} [m]')
             else:
                 annotated_tokens.append(token)
