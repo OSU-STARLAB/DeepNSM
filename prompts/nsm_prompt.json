@@ -1,0 +1,54 @@
+[
+    {
+        "role": "system",
+        "content": "You are a linguist specializing in the Natural Semantic Metalanguage (NSM). NSM is a linguistic theory that reduces lexicons down to a set of universal semantic primitives, or primes. Primes are ordered together to form explications, which are descriptions of semantic representations consisting solely of primes.\nYou will be given a specific word or phrase, along with one or more example passages in which it is used. Your task is to provide an explication of its meaning within the context of the passages using only NSM primes.\nYour explication in the primes must capture all implied meaning and maintain the exact performative effect of the original utterance (the audience would do, think, feel, and know the same things as a result).\nBelow is a list of the primes in English, organized by category:\nI, you, someone, people, something/thing, body, kind, part, the same, other/else/another, one, two, some, all, much/many, little/few, good, bad, big, small, think, know, want, don't want, feel, see, hear, say, words, true, do, happen, move, be (somewhere), there is, be (someone/something), (is) mine, live, die, when/time, now, before, after, a long time, a short time, for some time, moment, where/place, here, above, below, far, near, side, inside, touch (contact), not, maybe, can, because, if, very, more, like/as/way."
+    },
+    {
+        "role": "user",
+        "content": "Word/Phrase: evidence\nExample Passages:\nThe deeds that Christ did been [are] unsuspect evidence that Christ is both God and man. (Wycliff 1871 [ca. 1380], 107)\nBut it ought to be...as we shall prove by open evidence through God’s help. (A Compendious Old Treatise showing...that we ought to have the scripture in English [Tyndale 1450 in Arber 1871, 172])\nBut the spirit of almighty God made great evidence of his showing, so that all that were hardy to obey to him, falling down by the virtue of God, together turning in unbinding, or unstrength, and inward dread. Forsooth some horse appeared to him, having a dreadful sitter, best adorned; and he with fierceness or birr, rushed the former feet to Heliodorus; forsooth he that sat on him was seen for to have golden arms. (Wycliff’s Bible, with modernized spelling)\nExplication:"
+    },
+    {
+        "role": "assistant",
+        "content": "people can’t not know that it is true\nbecause they can know something else well\nlike people can know some things about something well\nwhen they see this thing well"
+    },
+    {
+        "role": "user",
+        "content": "Word/Phrase: 'Aaron Ralston is a real man'\nExample Passages:\nAaron Ralston is a real man and one tough son of a bitch....\nExplication:"
+    },
+    {
+        "role": "assistant",
+        "content": "Aaron Ralston is someone of one kind\nmany people think about people of this kind like this:\n\t“people of this kind can do some things, other people can’t do these things at the same time, people of this kind don’t do some other things”\nAaron Ralston is like this\nnot all people of this kind are like this\nit is good if someone is like this"
+    },
+    {
+        "role": "user",
+        "content": "Word/Phrase: sense\nExample Passages:\nChildren can sense your anxiety and become anxious, too.\nYou could envision a situation where the baby is sleeping face down on the bedding—you know, it doesn’t get enough oxygen. A normal baby can sense that. A SIDS [sudden infant death syndrome] baby may not be able to sense that.\nExplication:"
+    },
+    {
+        "role": "assistant",
+        "content": "some people can know that something is happening in the place where they are\nthey can know it because, when this is happening, they can feel something because of this,\n\tlike people can feel something in some parts of their body\n\twhen something is happening in these parts of their body\n\tbecause something is happening at that time in the place where they are"
+    },
+    {
+        "role": "user",
+        "content": "Word/Phrase: experience\nExample Passages:\nThe cows started shunting [pushing] me against the post, and I had to grab onto it to keep [stay on] my feet. It was a terrifying experience as they pressed against me with their angry eyes glaring menacingly.\nWhen the group emerged from the long corridor out of the pyramid, their faces were f lushed with pleasure. It was a marvelous experience, spiritual, as well as cultural. It was a lovely experience teaching him.\nDomestic/food prep in a five-star hotel in Lake Louise, Alberta. It was a fantastic experience.\nElma was so cold that she was unable to speak for almost half an hour....It was an horrendous experience.\nExplication:"
+    },
+    {
+        "role": "assistant",
+        "content": "something was happening to this someone at that time\nwhen it was happening, this someone felt something because of it\nat the same time, this someone thought about it like this: \n\t“this is happening to me now”\nthis someone knew at that time what it was like at that time\nbecause of this, when this someone thought about it afterward, \n\tthis someone could think about it like this:\n\t“I know what it was like when it was happening\n\tI know it like I know what I feel when I feel something\n\tI know it like I know what I see when I see something”"
+    },
+    {
+        "role": "user",
+        "content": "Word/Phrase: 'X suggested to Y (that Y do A)'\nExample Passages:\nJohn suggested to Mary that she go to the store and buy peaches.\nHe suggested that the auditor should review the logs and determine if there was any unusual activity.\nExplication:"
+    },
+    {
+        "role": "assistant",
+        "content": "someone X said something to someone else Y at that time\nthis someone said something like this:\n\t'it can be good if you do this (A), it can be good if you think about it'\nthis someone said it like someone can say something like this to someone else\n\twhen this someone thinks like this:\n\t\t'maybe this someone will do it after this, I don’t know\n\t\tI know that if this someone wants not to do it, this someone can not do it'"
+    },
+    {
+        "role": "user",
+        "content": "Word/Phrase: 'She was suffering'\nExample Passages:\nShe was suffering from cancer for years before recovering.\nExplication:"
+    },
+    {
+        "role": "assistant",
+        "content": "she felt something very bad for some time\n\tlike someone can feel when it is like this:\n\t\tsomething very bad is happening to this someone for a long time\n\t\tbecause of this, this someone feels something very bad for a long time\n\t\tthis someone can’t think like this during this time:\n\t\t\t'if I do something now, after this it will not be like this'"
+    }
+]

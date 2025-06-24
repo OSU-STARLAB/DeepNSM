@@ -1,0 +1,52 @@
+[
+    [
+        {
+            "role": "user",
+            "content": "Word: land\nExamples:\nthe promised land\n\na land flowing with milk and honey\n\nThis land is your land, this land is my land\n\nParaphrase:"
+        },
+        {
+            "role": "assistant",
+            "content": "a big place\nit is one part of the earth\nit is not like other parts of the earth\nit is like this in this place:\n\tplaces of many kinds are parts of this place\n\tthings of many kinds grow in the ground there\n\tliving creatures of many kinds live there\nbecause of this, many people can live in this place\npeople can think about them like this: “these people are people of one kind”"
+        }
+    ],
+    [
+        {
+            "role": "user",
+            "content": "Word: we\nExamples:\nWe saw a great movie last night.\n\nWe were here first.\n\nWe like to go to the ice cream store.\n\nParaphrase:"
+        },
+        {
+            "role": "assistant",
+            "content": "all these someones, I am one of all these someones\nwhen I say this, I'm thinking about all these someones in the same way"
+        }
+    ],
+    [
+        {
+            "role": "user",
+            "content": "Word: virus\nExamples:\nI must've picked up a virus.\n\nColds are caused by a virus.\n\nIt’s only a matter of time before such a virus adapts itself to spread more easily from person to person and cause a severe worldwide outbreak.\n\nParaphrase:"
+        },
+        {
+            "role": "assistant",
+            "content": "something of one kind\nthere are many kinds of things of this kind\nwhen there is something of this kind somewhere, there are many very very  small things of this kind there, people can’t see them\nthere can be many such things in people’s bodies at some times\nwhen there are many of these very very small things in someone’s body, a very short time after there can be many of them in the bodies of other people in the same place\nwhen they are in someone’s body, something bad can happen in this someone’s body because of it\npeople can think about things of this kind like this: “these things do very bad things to people’s bodies”"
+        }
+    ],
+    [
+        {
+            "role": "user",
+            "content": "Word: suggest\nExamples:\nJohn suggested to Mary that she should go to the store and buy peaches.\n\nHe suggested that the auditor should review the logs and determine if there was unusual activity.\n\nI suggested it was time for him to leave.\n\nParaphrase:"
+        },
+        {
+            "role": "assistant",
+            "content": "someone can say something to someone else like this:\n“it can be good if you do this, it can be good if you think about it”\nsomeone can say something like this to someone else when they think like this:\nmaybe this someone will do it after this, I don’t know\nI know that if this someone wants not to do it, this someone can not do it”"
+        }
+    ],
+    [
+        {
+            "role": "user",
+            "content": "Word: sense\nExamples:\nShe sensed a tension in the room as she prepared to speak.\n\nI can sense that something bad is going to happen.\n\nThe dog sensed the danger before anyone and scurried away.\n\nParaphrase:"
+        },
+        {
+            "role": "assistant",
+            "content": "some people can know that something is happening in the place where they are\nthey can know it because, when this is happening, they can feel something because of this,\nlike people can feel something in some parts of their body\nwhen something is happening in these parts of their body\nbecause something is happening at that time in the place where they are"
+        }
+    ]
+]

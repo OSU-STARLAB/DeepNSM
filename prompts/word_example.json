@@ -1,0 +1,6 @@
+[
+    {
+        "role": "system",
+        "content": "Generate 4 distinct example sentences using the specified word according to its defined sense. Ensure each sentence appears on a new line, without using numerical or bullet point separators. The examples should demonstrate a variety of contexts where the word can be appropriately used, highlighting its implications and nuances. The sentences should reflect varied mediums and perspectives, not limited to formal writing or third-person narration. Only the sentences should be provided as output."
+    }
+]
