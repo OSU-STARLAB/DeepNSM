@@ -1,0 +1,36 @@
+{
+    "dataset": {
+        "name": "baartmar/nsm_dataset_random",
+        "split": "test"
+    },
+    "output_path": "results",
+    "models": [
+        {
+            "model": "/nfs/hpc/share/baartmar/nsllm-8B-35/checkpoint-10000",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 8,
+            "orig": "meta-llama/Llama-3.1-8B-Instruct"
+        }
+    ],
+    "grader_models": [
+        {
+            "model": "meta-llama/Llama-3.1-8B-Instruct",
+            "max_batch_size": 8
+        },
+        {
+            "model": "google/gemma-3-12b-it",
+            "max_batch_size": 8
+        },
+        {
+            "model": "mistralai/Mistral-7B-Instruct-v0.3",
+            "max_batch_size": 8
+        }
+    ],
+    "languages": [
+        "alz",
+        "rw",
+        "dn",
+        "din"
+    ]
+}
