@@ -63,7 +63,7 @@ multiprocess==0.70.16
 murmurhash==1.0.12
 networkx==3.4.2
 nltk==3.9.1
-numpy==2.2.4
+numpy
 nvidia-cublas-cu12==12.4.5.8
 nvidia-cuda-cupti-cu12==12.4.127
 nvidia-cuda-nvrtc-cu12==12.4.127
@@ -132,7 +132,7 @@ torch==2.6.0
 torchaudio==2.6.0
 torchmetrics==0.10.3
 tornado==6.4.2
-tqdm==4.64.1
+tqdm
 transformers==4.51.1
 triton==3.2.0
 trl==0.16.0

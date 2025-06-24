@@ -101,14 +101,14 @@ collator to handle our data better. Example sentence at start of wait-3 translat
 def formatting_func(example):
     output_texts = []  
 
-    if not isinstance(example['word'], list) or not isinstance(example['examples'][0], list) or not isinstance(example['ns_metalanguage'], list):
+    if not isinstance(example['word'], list) or not isinstance(example['examples'][0], list) or not isinstance(example['explication'], list):
         example['word'] = [example['word']]
         example['examples'] = [example['examples']]
-        example['ns_metalanguage'] = [example['ns_metalanguage']]
+        example['explication'] = [example['explication']]
     
-    for word, examples, explication in zip(example['word'], example['examples'], example['ns_metalanguage']):
-        examples = " ".join(examples)
-        text = f"<|start_header_id|>user<|end_header_id|>\n\nHere is a word:{word}. Here are examples of using the word:{examples}. Now provide an explication of the word.<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{explication}"
+    for word, examples, explication in zip(example['word'], example['examples'], example['explication']):
+        examples = "\n".join(examples)
+        text = f"<|start_header_id|>user<|end_header_id|>\nWord:{word}\nExamples:{examples}\nParaphrase:<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n{explication}"
         output_texts.append(text)
 
     return output_texts 

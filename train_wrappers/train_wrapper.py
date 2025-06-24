@@ -143,7 +143,7 @@ class LLMSFTTrainerWrapper:
             warmup_ratio=args.warmup_ratio,
             lr_scheduler_type=args.lr_scheduler,
             weight_decay=args.weight_decay,
-            evaluation_strategy="steps",
+#            evaluation_strategy="steps",
             eval_steps=args.eval_interval,
             group_by_length=True,
             fp16=(args.bnb_4bit_compute_dtype == "float16"),
@@ -155,7 +155,7 @@ class LLMSFTTrainerWrapper:
 
     def load_dataset(self):
         self.training = load_dataset(self.training_set, self.training_subset, split="train")
-        self.validation = load_dataset(self.training_set, self.training_subset, split="train")
+        self.validation = load_dataset(self.training_set, self.training_subset, split="validation")
 
 
     def setup_peft_config(self, args):
