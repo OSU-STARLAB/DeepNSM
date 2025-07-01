@@ -1,3 +1,25 @@
+# DeepNSM
+DeepNSM is a large language model that has been fine-tuned for generating [Natural Semantic Metalanguage](https://en.wikipedia.org/wiki/Natural_semantic_metalanguage) explications of word-meanings. This repository includes the code, models, and experiment code for the paper "Towards Universal Semantics With Large Language Models."
+
+The models used in the paper are uploaded on HuggingFace:
+
+https://huggingface.co/baartmar/DeepNSM-1B
+https://huggingface.co/baartmar/DeepNSM-8B
+https://huggingface.co/baartmar/nsm_dataset
+
+For more details, please see our preprint on arxiv:
+```
+@misc{baartmans2025universalsemanticslargelanguage,
+      title={Towards Universal Semantics With Large Language Models}, 
+      author={Raymond Baartmans and Matthew Raffel and Rahul Vikram and Aiden Deringer and Lizhong Chen},
+      year={2025},
+      eprint={2505.11764},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2505.11764}, 
+}
+```
+
 # Requirements
 1. Python 3.12.5. The code for this repository is tested on Python 3.12.5. If you would like to use newer versions of python, you may need to relax some of the version constraints on `requirements.txt` to do so.
 2. NVIDIA GPU with CUDA Support. A card with > 16GB VRAM is likely required to run full experiments.
