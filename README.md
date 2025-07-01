@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ```
 2. Create a .env file and fill it in with the correct values and API keys. To run the 
 ```
-cp -r .env.example .env
+cp .env.example .env
 ```
 3. (Optional) If you run a 50 series GPU or newer, you will likely need to install Torch 2.7 over the version provided in requirements.txt in order to run the LLMs properly.
 ```
