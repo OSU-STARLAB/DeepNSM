@@ -1,12 +1,23 @@
+# Requirements
+1. Python 3.12.5. The code for this repository is tested on Python 3.12.5. If you would like to use newer versions of python, you may need to relax some of the version constraints on `requirements.txt` to do so.
+2. NVIDIA GPU with CUDA Support. A card with > 16GB VRAM is likely required to run full experiments.
+3. You will probably need at least 8GB of free disk space to install the packages and download model weights, but much more is likely needed for running full experiments.
+
+
 # First-Time Setup
 1. Create a virtual environment (recommended) and install dependencies
 ```
 python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
-2. Create a .env file and fill it in with the correct API keys.
+2. Create a .env file and fill it in with the correct values and API keys. To run the 
 ```
 cp -r .env.example .env
+```
+3. (Optional) If you run a 50 series GPU or newer, you will likely need to install Torch 2.7 over the version provided in requirements.txt in order to run the LLMs properly.
+```
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 ```
 
 # Start-Up
@@ -16,7 +27,8 @@ source .venv/bin/activate
 source .env
 ```
 
-# Try out DeepNSM. To run the DeepNSM models on your machine, you will need to have followed the setup guide for this repository. You will also need a NVIDIA GPU capable of running inference on up to 8B parameter LLMs.
+# Try out DeepNSM.
+To run the DeepNSM models on your machine, you will need to have followed the setup guide for this repository. You will also need a NVIDIA GPU capable of running inference on up to 8B parameter LLMs, if you would like to try the 8B variants. This script also allows you to try out DeepNSM-1B and Llama-3.2-1B for generating NSM explications.
 ```
 python test_deepnsm.py
 ```
