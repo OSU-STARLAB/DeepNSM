@@ -1,9 +1,12 @@
 import json
-from nsm_evaluation import *
 from google.genai import types
 from enum import Enum, auto
-
+import re
+from utils import *
 # System Instruction Templates
+import spacy
+nlp = spacy.load("en_core_web_sm")
+
 
 WORD_EXAMPLE_SYS_INST = """Generate {num_examples} distinct example sentences using the specified word strictly according to its defined sense. Ensure each sentence appears on a new line, without using numerical or bullet point separators. Only the sentences should be provided as output."""
 
@@ -48,6 +51,115 @@ RECOVERY_USER_TEMPLATE_EXPLICATION = """Passage: {passage}
 Paraphrase:
 {paraphrase}
 Missing word:"""
+
+
+class Explication:
+    def __init__(self, text:str):
+        self.text = text
+        self.target_word = ""
+        self.length = 0
+        self.primes = 0
+        self.stop_words = 0
+        self.molecules = 0
+        self.unique_molecules = 0
+        self.uses_original_word=False
+        
+        self.primes_ratio = 0.0
+        self.molecules_ratio = 0.0
+
+        # grader ambig [1,2] if min/ent
+        self.sub_scores = []
+
+        self.avg_delta = 0.0
+        self.avg_delta_min = 0.0
+        self.avg_delta_ent = 0.0
+
+        self.score_exp = 0.0
+        self.total_score = 0.0
+
+        self.ct_comet_scores = []
+        self.ct_bleu_scores = []
+        self.ct_embed_scores = []
+
+    def legality_score(self, word:str):
+        tokens = re.sub(r'[^\w\s]', '', self.text.lower()).split()
+        self.target_word = word
+        self.length = len(tokens)
+        self.primes = sum(1 for t in tokens if t in NSM_PRIMES)
+        self.stop_words = sum(1 for t in tokens if t in STOP_WORDS)
+        all_molecules = [t for t in tokens if t not in NSM_PRIMES and t not in STOP_WORDS]
+        self.molecules = len(all_molecules)
+        self.unique_molecules = len(set(all_molecules))
+        # Lemmatize the input word
+        word_lemma = nlp(word.lower())[0].lemma_
+        # Lemmatize the tokens and check for a match
+        doc = nlp(" ".join(tokens))
+        self.uses_original_word = any([word_lemma == token.lemma_ for token in doc if not token.is_space])
+        self.primes_ratio = self.primes / self.length if self.length > 0 else 0
+        self.molecules_ratio = self.molecules / self.length if self.length > 0 else 0
+
+    def calculate_averages(self):
+        self.avg_delta = sum([score.avg_delta_log for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
+        self.avg_delta_min = sum([score.avg_min_delta_log for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
+        self.avg_delta_ent = sum([score.avg_ent_delta_log for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
+        self.score_exp = sum([score.adj_score for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
+        self.total_score = 2 * (self.score_exp + (10 * self.primes_ratio) - (10 * self.molecules_ratio)) if not self.uses_original_word else 0.0
+
+    def get_truncated(self, max_lines_remove=2):
+        truncated_exps = []
+        lines = self.text.strip().split('\n')
+        for i in range(min(len(lines), max_lines_remove)):
+            truncated_exp = Explication('\n'.join(lines[:-(i+1)]))
+            truncated_exps.append(truncated_exp)
+        return truncated_exps
+
+    def pretty_print(self):
+        pass
+
+    def __json__(self):
+        return {
+            "target_word": self.target_word,
+            "text": self.text,
+            "uses_original_word": self.uses_original_word,
+            "total_score": self.total_score,
+            "score_exp": self.score_exp,
+            "primes_ratio": self.primes_ratio,
+            "molecules_ratio": self.molecules_ratio,
+            "comet_scores": self.ct_comet_scores,
+            "bleu_scores": self.ct_bleu_scores,
+            "embed_scores": self.ct_embed_scores,
+            "avg_delta": self.avg_delta,
+            "avg_delta_min": self.avg_delta_ent,
+            "avg_delta_ent": self.avg_delta_min,
+            "length": self.length,
+            "primes": self.primes,
+            "stop_words": self.stop_words,
+            "molecules": self.molecules,
+            "unique_molecules": self.unique_molecules,
+            "sub_scores": [score.__json__() for score in self.sub_scores]
+        }
+
+class AmbiguousExample:
+    def __init__(self, text, source=None):
+        self.text = text
+        self.source = source
+
+    def get_truncated(self, max_remove=2):
+        truncated_ambigs = []
+        example_sentences = [s.strip() for s in self.text.strip().split('.') if s.strip()]
+        non_unk_indices = [i for i in range(len(example_sentences)) if "<UNK>" not in example_sentences[i]]
+        for i in range(min(len(non_unk_indices), max_remove)):
+            reduced_sentences = [s for idx, s in enumerate(example_sentences) if idx not in non_unk_indices[:i+1]]
+            new_ambig = AmbiguousExample('. '.join(reduced_sentences))
+            truncated_ambigs.append(new_ambig)
+
+        return truncated_ambigs
+
+    def __json__(self):
+        return {
+            "text": self.text,
+            "src": self.source,
+        }
 
 with open("prompts/nsm_multi_turn_examples.json", "r") as f:
     explication_examples = json.load(f)
@@ -121,7 +233,6 @@ def build_prompt_from_parts(
         messages.append({"role": "user", "content": final_input})
 
     return messages, generate_content_config
-
 
 def build_explication_prompt(word: str, sense_examples: list[str], format: ChatFormat,
                              system_supported=True, multi_turn_supported=True,
@@ -234,6 +345,3 @@ def openai_prompt_to_jsonl(messages, model_name, custom_id):
             "messages": messages
         }
     })
-
-# messages, config = build_explication_prompt("Dog", ["the dog went to the park", "my dog is named rusty"], ChatFormat.GEMINI)
-# print(gemini_prompt_to_jsonl(messages, config))

@@ -1,16 +1,58 @@
 {
     "dataset": {
-        "name": "baartmar/nsm_dataset_random",
+        "name": "baartmar/nsm_dataset",
         "split": "test"
     },
     "output_path": "results",
     "models": [
         {
-            "model": "/nfs/hpc/share/baartmar/nsllm-8B-35/checkpoint-10000",
+            "model": "baartmar/DeepNSM-8B",
             "use_system_prompt": true,
             "num_examples": 3,
             "max_batch_size": 8,
-            "orig": "meta-llama/Llama-3.1-8B-Instruct"
+            "orig": "meta-llama/Llama-3.1-8B"
+        },
+        {
+            "model": "baartmar/DeepNSM-1B",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 8,
+            "orig": "meta-llama/Llama-3.2-1B"
+        },
+        {
+            "model": "meta-llama/Llama-3.1-8B-Instruct",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 8,
+            "orig": ""
+        },
+        {
+            "model": "meta-llama/Llama-3.2-1B-Instruct",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 8,
+            "orig": ""
+        },
+        {
+            "model": "gpt-4o",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 1,
+            "orig": ""
+        },
+        {
+            "model": "gpt-4o",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 1,
+            "orig": ""
+        },
+        {
+            "model": "gemini-2.0-flash",
+            "use_system_prompt": true,
+            "num_examples": 3,
+            "max_batch_size": 1,
+            "orig": ""
         }
     ],
     "grader_models": [
@@ -31,6 +73,7 @@
         "alz",
         "rw",
         "dn",
-        "din"
+        "din",
+        "ab"
     ]
 }

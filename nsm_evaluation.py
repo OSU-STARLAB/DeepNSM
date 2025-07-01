@@ -1,53 +1,26 @@
 import argparse
 from huggingface_hub import login
 import os
-from dotenv import load_dotenv
 from datasets import load_dataset
-from transformers import AutoModelForCausalLM, AutoTokenizer, LlamaForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from accelerate import Accelerator as accelerator, PartialState
 import json
 from tqdm import tqdm
-import prompts
-import re
 from openai import OpenAI
 from google import genai
-from peft import PeftModelForCausalLM
-import spacy
+from peft import PeftModelForCausalLM, PeftModel
 import numpy as np
 from datetime import datetime
 import random
-from torch.nn.utils.rnn import pad_sequence
-from conceptnet_walk import *
+
+from prompts import *
+from utils import *
 
 random.seed(554)
 torch.manual_seed(554)
 
-nlp = spacy.load("en_core_web_sm")
 
-import nltk
-from nltk.corpus import stopwords
-DOWNLOAD_DIR = '/nfs/hpc/share/baartmar/NSM/nltk_data'
-nltk.data.path.append(DOWNLOAD_DIR)
-nltk.download('stopwords', download_dir=DOWNLOAD_DIR)
-# Get English stopwords
-stop_words = set(stopwords.words('english'))
-
-NSM_PRIMES = {
-    "I", "you", "someone", "people", "something", "thing", "body", "kind", "part",
-    "this", "the same", "other", "else", "another", "one", "two", "some", "all",
-    "much", "many", "little", "few", "good", "bad", "big", "small", "think", "know",
-    "want", "don't want", "feel", "see", "hear", "say", "words", "true", "do",
-    "happen", "move", "there", "is", "be",
-    "mine", "live", "die", "when", "time", "now", "before", "after",
-    "a long time", "a short time", "for some time", "moment", "where", "place",
-    "here", "above", "below", "far", "near", "side", "inside", "touch", "contact",
-    "not", "maybe", "can", "because", "if", "very", "more", "like", "as", "way"
-}
-
-STOP_WORDS = stop_words - NSM_PRIMES
-
-load_dotenv()
 login(os.getenv("HF_ACCESS_TOKEN"))
 
 # ************************* CLASSES ******************************
@@ -115,92 +88,6 @@ class ModelResult:
             "avg_stop_words": self.avg_stop_words,
             "avg_molecules": self.avg_molecules,
             "explications": [expl.__json__() for expl in self.explications]
-        }
-
-class Explication:
-    def __init__(self, text:str):
-        self.text = text
-        self.target_word = ""
-        self.length = 0
-        self.primes = 0
-        self.stop_words = 0
-        self.molecules = 0
-        self.unique_molecules = 0
-        self.uses_original_word=False
-        
-        self.primes_ratio = 0.0
-        self.molecules_ratio = 0.0
-
-        # grader ambig [1,2] if min/ent
-        self.sub_scores = []
-
-        self.avg_delta = 0.0
-        self.avg_delta_min = 0.0
-        self.avg_delta_ent = 0.0
-
-        self.score_exp = 0.0
-        self.total_score = 0.0
-
-        self.ct_comet_scores = []
-        self.ct_bleu_scores = []
-        self.ct_embed_scores = []
-
-    def legality_score(self, word:str):
-        tokens = re.sub(r'[^\w\s]', '', self.text.lower()).split()
-        self.target_word = word
-        self.length = len(tokens)
-        self.primes = sum(1 for t in tokens if t in NSM_PRIMES)
-        self.stop_words = sum(1 for t in tokens if t in STOP_WORDS)
-        all_molecules = [t for t in tokens if t not in NSM_PRIMES and t not in STOP_WORDS]
-        self.molecules = len(all_molecules)
-        self.unique_molecules = len(set(all_molecules))
-        # Lemmatize the input word
-        word_lemma = nlp(word.lower())[0].lemma_
-        # Lemmatize the tokens and check for a match
-        doc = nlp(" ".join(tokens))
-        self.uses_original_word = any([word_lemma == token.lemma_ for token in doc if not token.is_space])
-        self.primes_ratio = self.primes / self.length if self.length > 0 else 0
-        self.molecules_ratio = self.molecules / self.length if self.length > 0 else 0
-
-    def calculate_averages(self):
-        self.avg_delta = sum([score.avg_delta_log for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
-        self.avg_delta_min = sum([score.avg_min_delta_log for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
-        self.avg_delta_ent = sum([score.avg_ent_delta_log for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
-        self.score_exp = sum([score.adj_score for score in self.sub_scores]) / len(self.sub_scores) if self.sub_scores else 0
-        self.total_score = 2 * (self.score_exp + (10 * self.primes_ratio) - (10 * self.molecules_ratio)) if not self.uses_original_word else 0.0
-
-    def get_truncated(self, max_lines_remove=2):
-        truncated_exps = []
-        lines = self.text.strip().split('\n')
-        for i in range(min(len(lines), max_lines_remove)):
-            truncated_exp = Explication('\n'.join(lines[:-(i+1)]))
-            truncated_exps.append(truncated_exp)
-        return truncated_exps
-
-    def pretty_print(self):
-        pass
-
-    def __json__(self):
-        return {
-            "target_word": self.target_word,
-            "text": self.text,
-            "uses_original_word": self.uses_original_word,
-            "total_score": self.total_score,
-            "score_exp": self.score_exp,
-            "primes_ratio": self.primes_ratio,
-            "molecules_ratio": self.molecules_ratio,
-            "comet_scores": self.ct_comet_scores,
-            "bleu_scores": self.ct_bleu_scores,
-            "embed_scores": self.ct_embed_scores,
-            "avg_delta": self.avg_delta,
-            "avg_delta_min": self.avg_delta_ent,
-            "avg_delta_ent": self.avg_delta_min,
-            "length": self.length,
-            "primes": self.primes,
-            "stop_words": self.stop_words,
-            "molecules": self.molecules,
-            "unique_molecules": self.unique_molecules,
-            "sub_scores": [score.__json__() for score in self.sub_scores]
         }
 
 class SubstitutabilityScore:
@@ -299,28 +186,6 @@ class Prediction:
             "lines_removed": self.lines_removed
         }
 
-class AmbiguousExample:
-    def __init__(self, text, source=None):
-        self.text = text
-        self.source = source
-
-    def get_truncated(self, max_remove=2):
-        truncated_ambigs = []
-        example_sentences = [s.strip() for s in self.text.strip().split('.') if s.strip()]
-        non_unk_indices = [i for i in range(len(example_sentences)) if "<UNK>" not in example_sentences[i]]
-        for i in range(min(len(non_unk_indices), max_remove)):
-            reduced_sentences = [s for idx, s in enumerate(example_sentences) if idx not in non_unk_indices[:i+1]]
-            new_ambig = AmbiguousExample('. '.join(reduced_sentences))
-            truncated_ambigs.append(new_ambig)
-
-        return truncated_ambigs
-
-    def __json__(self):
-        return {
-            "text": self.text,
-            "src": self.source,
-        }
-
 # ************************* CLASSES ******************************
 
 def prepare_batch_prompts(model_name, ambigs:list[AmbiguousExample], explications:list[Explication]):
@@ -337,7 +202,7 @@ def prepare_batch_prompts(model_name, ambigs:list[AmbiguousExample], explication
             continue
 
         baseline_preds[i] = Prediction("")
-        prompt, _ = prompts.build_recover_prompt(example, system_supported=False if "gemma" in model_name else True)
+        prompt, _ = build_recover_prompt(example, system_supported=False if "gemma" in model_name else True)
         baseline_prompts.append(prompt)
 
         truncated_ambigs = example.get_truncated()
@@ -345,19 +210,19 @@ def prepare_batch_prompts(model_name, ambigs:list[AmbiguousExample], explication
         for j, explication in enumerate(explications):
             
             preds[j][i][0] = Prediction("")
-            prompt, _ = prompts.build_recover_prompt(example, explication, system_supported=False if "gemma" in model_name.lower() else True)
+            prompt, _ = build_recover_prompt(example, explication, system_supported=False if "gemma" in model_name.lower() else True)
             batch_prompts.append(prompt)
 
             truncated_explications = explication.get_truncated()
             
             for k in range(len(truncated_explications)):
                 preds[j][i][1+k] = Prediction("", lines_removed=1+k)
-                prompt, _ = prompts.build_recover_prompt(example, truncated_explications[k], system_supported=False if "gemma" in model_name.lower() else True)
+                prompt, _ = build_recover_prompt(example, truncated_explications[k], system_supported=False if "gemma" in model_name.lower() else True)
                 batch_prompts.append(prompt)
 
             for k in range(len(truncated_ambigs)):
                 preds[j][i][3+k] = Prediction("", lines_removed=1+k)
-                prompt, _ = prompts.build_recover_prompt(truncated_ambigs[k], explication, system_supported=False if "gemma" in model_name.lower() else True)
+                prompt, _ = build_recover_prompt(truncated_ambigs[k], explication, system_supported=False if "gemma" in model_name.lower() else True)
                 batch_prompts.append(prompt)
 
     return baseline_preds, preds, baseline_prompts + batch_prompts
@@ -600,24 +465,8 @@ def cross_translate_eval(language_list, results):
                 print(f"\n[{lang}] {model_pred}")
                 print(f"BLEU: {avg_bleu:.2f}, EmbedSim: {avg_sim:.2f}, COMET: {avg_comet:.2f}")
 
-def substitutability_test(model_list, dataset, bfloat_supported, use_conceptnet_examples=False):
+def substitutability_test(model_list, dataset, bfloat_supported):
     results = {}
-
-    # If using ConceptNet examples, pre-generate and overwrite examples in dataset
-    if use_conceptnet_examples:
-        print("Generating ConceptNet examples for dataset words...")
-        for entry in tqdm(dataset, desc="ConceptNet example generation"):
-            word = entry["word"]
-            num_existing = len(entry.get("examples", []))  # number of current examples
-            try:
-                conceptnet_examples = generate_conceptnet_examples(word, n_examples=num_existing)
-                if conceptnet_examples:
-                    entry["examples"] = conceptnet_examples
-                else:
-                    print(f"Warning: no ConceptNet examples for {word}, using original")
-            except Exception as e:
-                print(f"Error generating ConceptNet examples for {word}: {e}")
-
 
     result = ModelResult("wordnet")
     for entry in tqdm(dataset, f"Baseline of WordNet Definitions"):
@@ -637,7 +486,7 @@ def substitutability_test(model_list, dataset, bfloat_supported, use_conceptnet_
         if "gpt" in model_name.lower():
             client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
             for entry in tqdm(dataset, f"Making predictions for {model_name}"):
-                prompt, _ = prompts.build_explication_prompt(entry["word"], entry["examples"], prompts.ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
+                prompt, _ = build_explication_prompt(entry["word"], entry["examples"], ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
                 response = client.chat.completions.create(
                     model=model_name,
                     messages=prompt,
@@ -649,7 +498,7 @@ def substitutability_test(model_list, dataset, bfloat_supported, use_conceptnet_
         elif "gemini" in model_name.lower():
             client = genai.Client()
             for entry in tqdm(dataset, f"Making predictions for {model_name}"):
-                messages, config = prompts.build_explication_prompt(entry["word"], entry["examples"], prompts.ChatFormat.GEMINI, system_supported=use_system_prompt, max_few_shot=num_examples)
+                messages, config = build_explication_prompt(entry["word"], entry["examples"], ChatFormat.GEMINI, system_supported=use_system_prompt, max_few_shot=num_examples)
                 response = client.models.generate_content(
                     model=model_name,
                     contents=messages,
@@ -661,7 +510,7 @@ def substitutability_test(model_list, dataset, bfloat_supported, use_conceptnet_
         elif any(["llama" in model_name.lower(), "mistral" in model_name.lower()]):
             all_prompts = []
             for entry in dataset:
-                prompt, _ = prompts.build_explication_prompt(entry["word"], entry["examples"], prompts.ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
+                prompt, _ = build_explication_prompt(entry["word"], entry["examples"], ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
                 all_prompts.append(prompt)
                 
             tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
@@ -698,7 +547,7 @@ def substitutability_test(model_list, dataset, bfloat_supported, use_conceptnet_
             torch.cuda.empty_cache()
             #process all prompts in batches max_batch_size
 
-        elif "nsllm" in model_name.lower():
+        elif "deepnsm" in model_name.lower():
             
             #set up batch prompt in batch size
             tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -782,7 +631,7 @@ def nsm_evaluation(eval_config):
     #     if "gpt" in model_name.lower():
     #         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     #         for entry in tqdm(dataset, f"Making predictions for {model_name}"):
-    #             prompt, _ = prompts.build_explication_prompt(entry["word"], entry["examples"], prompts.ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
+    #             prompt, _ = build_explication_prompt(entry["word"], entry["examples"], ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
     #             response = client.chat.completions.create(
     #                 model=model_name,
     #                 messages=prompt,
@@ -794,7 +643,7 @@ def nsm_evaluation(eval_config):
     #     elif "gemini" in model_name.lower():
     #         client = genai.Client()
     #         for entry in tqdm(dataset, f"Making predictions for {model_name}"):
-    #             messages, config = prompts.build_explication_prompt(entry["word"], entry["examples"], prompts.ChatFormat.GEMINI, system_supported=use_system_prompt, max_few_shot=num_examples)
+    #             messages, config = build_explication_prompt(entry["word"], entry["examples"], ChatFormat.GEMINI, system_supported=use_system_prompt, max_few_shot=num_examples)
     #             response = client.models.generate_content(
     #                 model=model_name,
     #                 contents=messages,
@@ -806,7 +655,7 @@ def nsm_evaluation(eval_config):
     #     elif any(["llama" in model_name.lower(), "mistral" in model_name.lower()]):
     #         all_prompts = []
     #         for entry in dataset:
-    #             prompt, _ = prompts.build_explication_prompt(entry["word"], entry["examples"], prompts.ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
+    #             prompt, _ = build_explication_prompt(entry["word"], entry["examples"], ChatFormat.DEFAULT, system_supported=use_system_prompt, max_few_shot=num_examples)
     #             all_prompts.append(prompt)
                 
     #         tokenizer = AutoTokenizer.from_pretrained(model_name, padding_side='left')
@@ -948,11 +797,7 @@ def nsm_evaluation(eval_config):
     results["languages"] = language_list
     with open(output_path + result_file_name, "w", newline='') as output_file:
         json.dump(results, output_file, default=custom_encoder)
-        
-
     
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='NSM Evaluation...')
     parser.add_argument("--config_path", type=str, required=True)
