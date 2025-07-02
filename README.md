@@ -50,6 +50,8 @@ source .env
 ```
 
 # Try out DeepNSM.
+Colab Demo: https://colab.research.google.com/drive/1kWesMSQOgKOsXxONvZyinpdgh86gDBcy?usp=drive_link
+
 To run the DeepNSM models on your machine, you will need to have followed the setup guide for this repository. You will also need a NVIDIA GPU capable of running inference on up to 8B parameter LLMs, if you would like to try the 8B variants. This script also allows you to try out DeepNSM-1B and Llama-3.2-1B for generating NSM explications.
 ```
 python test_deepnsm.py
